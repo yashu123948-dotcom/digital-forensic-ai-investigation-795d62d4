@@ -14,16 +14,307 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      agent_outputs: {
+        Row: {
+          agent_key: string
+          agent_name: string
+          case_id: string
+          confidence: number
+          created_at: string
+          evidence_refs: Json
+          findings: Json
+          id: string
+          reasoning: string | null
+          recommendations: Json
+          risk: Database["public"]["Enums"]["risk_level"] | null
+          sequence: number
+          status: string
+          summary: string | null
+          user_id: string
+        }
+        Insert: {
+          agent_key: string
+          agent_name: string
+          case_id: string
+          confidence?: number
+          created_at?: string
+          evidence_refs?: Json
+          findings?: Json
+          id?: string
+          reasoning?: string | null
+          recommendations?: Json
+          risk?: Database["public"]["Enums"]["risk_level"] | null
+          sequence?: number
+          status?: string
+          summary?: string | null
+          user_id: string
+        }
+        Update: {
+          agent_key?: string
+          agent_name?: string
+          case_id?: string
+          confidence?: number
+          created_at?: string
+          evidence_refs?: Json
+          findings?: Json
+          id?: string
+          reasoning?: string | null
+          recommendations?: Json
+          risk?: Database["public"]["Enums"]["risk_level"] | null
+          sequence?: number
+          status?: string
+          summary?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_outputs_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          actor_email: string | null
+          created_at: string
+          detail: string | null
+          entity: string | null
+          entity_id: string | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          created_at?: string
+          detail?: string | null
+          entity?: string | null
+          entity_id?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          created_at?: string
+          detail?: string | null
+          entity?: string | null
+          entity_id?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      cases: {
+        Row: {
+          bookmarked: boolean
+          case_type: string
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          duration_seconds: number | null
+          id: string
+          malware_detected: number
+          risk: Database["public"]["Enums"]["risk_level"] | null
+          status: Database["public"]["Enums"]["case_status"]
+          tags: string[]
+          threat_score: number
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bookmarked?: boolean
+          case_type?: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          malware_detected?: number
+          risk?: Database["public"]["Enums"]["risk_level"] | null
+          status?: Database["public"]["Enums"]["case_status"]
+          tags?: string[]
+          threat_score?: number
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bookmarked?: boolean
+          case_type?: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          malware_detected?: number
+          risk?: Database["public"]["Enums"]["risk_level"] | null
+          status?: Database["public"]["Enums"]["case_status"]
+          tags?: string[]
+          threat_score?: number
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      evidence_files: {
+        Row: {
+          case_id: string
+          created_at: string
+          extracted_text: string | null
+          file_name: string
+          file_size: number
+          file_type: string | null
+          id: string
+          sha256: string | null
+          storage_path: string | null
+          user_id: string
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          extracted_text?: string | null
+          file_name: string
+          file_size?: number
+          file_type?: string | null
+          id?: string
+          sha256?: string | null
+          storage_path?: string | null
+          user_id: string
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          extracted_text?: string | null
+          file_name?: string
+          file_size?: number
+          file_type?: string | null
+          id?: string
+          sha256?: string | null
+          storage_path?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evidence_files_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          organization: string | null
+          status: Database["public"]["Enums"]["account_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          organization?: string | null
+          status?: Database["public"]["Enums"]["account_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          organization?: string | null
+          status?: Database["public"]["Enums"]["account_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          case_id: string
+          content: Json
+          created_at: string
+          executive_summary: string | null
+          id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          case_id: string
+          content?: Json
+          created_at?: string
+          executive_summary?: string | null
+          id?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          case_id?: string
+          content?: Json
+          created_at?: string
+          executive_summary?: string | null
+          id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_approved: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      account_status: "pending" | "approved" | "rejected" | "deactivated"
+      app_role: "admin" | "analyst"
+      case_status: "draft" | "running" | "completed" | "failed"
+      risk_level: "low" | "medium" | "high" | "critical"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +441,11 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      account_status: ["pending", "approved", "rejected", "deactivated"],
+      app_role: ["admin", "analyst"],
+      case_status: ["draft", "running", "completed", "failed"],
+      risk_level: ["low", "medium", "high", "critical"],
+    },
   },
 } as const
