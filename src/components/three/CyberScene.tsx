@@ -149,7 +149,8 @@ function BinaryField() {
       pos.setY(i, y);
     }
     pos.needsUpdate = true;
-    ref.current.material.opacity = 0.5 + Math.sin(state.clock.elapsedTime) * 0.08;
+    const mat = ref.current.material as THREE.PointsMaterial;
+    mat.opacity = 0.5 + Math.sin(state.clock.elapsedTime) * 0.08;
   });
 
   return (
