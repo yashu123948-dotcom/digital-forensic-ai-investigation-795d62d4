@@ -1,0 +1,250 @@
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import {
+  LayoutDashboard,
+  Home,
+  Cpu,
+  FolderPlus,
+  Boxes,
+  Clock4,
+  Globe2,
+  FileText,
+  BarChart3,
+  Settings,
+  LifeBuoy,
+  Info,
+  LogOut,
+  ShieldCheck,
+  Menu,
+  X,
+  Search,
+  Bell,
+  Sun,
+  Moon,
+} from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { AssistantDock } from "@/components/AssistantDock";
+
+const NAV = [
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/home", label: "Home", icon: Home },
+  { to: "/agents", label: "AI Agents", icon: Cpu },
+  { to: "/investigate", label: "New Investigation", icon: FolderPlus },
+  { to: "/evidence", label: "Evidence Explorer", icon: Boxes },
+  { to: "/timeline", label: "Timeline", icon: Clock4 },
+  { to: "/threat-intel", label: "Threat Intelligence", icon: Globe2 },
+  { to: "/reports", label: "Reports", icon: FileText },
+  { to: "/analytics", label: "Analytics", icon: BarChart3 },
+] as const;
+
+const FOOTER_NAV = [
+  { to: "/settings", label: "Settings", icon: Settings },
+  { to: "/help", label: "Help", icon: LifeBuoy },
+  { to: "/about", label: "About", icon: Info },
+] as const;
+
+export function AppShell({
+  title,
+  subtitle,
+  actions,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  actions?: ReactNode;
+  children: ReactNode;
+}) {
+  const { profile, isAdmin, signOut } = useAuth();
+  const navigate = useNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [open, setOpen] = useState(false);
+  const [light, setLight] = useState(false);
+
+  useEffect(() => setOpen(false), [pathname]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("light", light);
+  }, [light]);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        navigate({ to: "/evidence" });
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "i") {
+        e.preventDefault();
+        navigate({ to: "/investigate" });
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [navigate]);
+
+  async function handleSignOut() {
+    await signOut();
+    navigate({ to: "/auth", replace: true });
+  }
+
+  const initials = (profile?.full_name || profile?.email || "A")
+    .split(" ")
+    .map((p) => p[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="pointer-events-none fixed inset-0 cyber-grid opacity-40" />
+      <div className="pointer-events-none fixed -top-40 left-1/3 size-[520px] rounded-full bg-primary/10 blur-[140px]" />
+
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-sidebar-border bg-sidebar/95 backdrop-blur-xl transition-transform lg:translate-x-0",
+          open ? "translate-x-0" : "-translate-x-full",
+        )}
+      >
+        <div className="flex h-16 items-center gap-2.5 border-b border-sidebar-border px-5">
+          <div className="grid size-9 place-items-center rounded-lg bg-primary/15 neon-border">
+            <ShieldCheck className="size-5 text-primary" />
+          </div>
+          <div className="leading-tight">
+            <p className="font-display text-base font-bold tracking-tight">ForensicAI</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              SOC Console
+            </p>
+          </div>
+          <button
+            className="ml-auto lg:hidden"
+            onClick={() => setOpen(false)}
+            aria-label="Close navigation"
+          >
+            <X className="size-5" />
+          </button>
+        </div>
+
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+          {NAV.map((item) => (
+            <SideLink key={item.to} {...item} active={pathname === item.to} />
+          ))}
+          {isAdmin && (
+            <SideLink
+              to="/admin"
+              label="Admin Panel"
+              icon={ShieldCheck}
+              active={pathname === "/admin"}
+            />
+          )}
+          <div className="!my-4 h-px bg-sidebar-border" />
+          {FOOTER_NAV.map((item) => (
+            <SideLink key={item.to} {...item} active={pathname === item.to} />
+          ))}
+        </nav>
+
+        <div className="border-t border-sidebar-border p-3">
+          <div className="mb-2 flex items-center gap-2.5 rounded-lg bg-sidebar-accent/60 px-3 py-2.5">
+            <div className="grid size-8 shrink-0 place-items-center rounded-full bg-primary/20 font-mono text-xs font-semibold text-primary">
+              {initials}
+            </div>
+            <div className="min-w-0 leading-tight">
+              <p className="truncate text-xs font-medium">
+                {profile?.full_name || profile?.email}
+              </p>
+              <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                {isAdmin ? "Administrator" : "Analyst"}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleSignOut}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-danger/10 hover:text-danger"
+          >
+            <LogOut className="size-4" />
+            Logout
+          </button>
+        </div>
+      </aside>
+
+      {open && (
+        <div
+          className="fixed inset-0 z-40 bg-background/70 backdrop-blur-sm lg:hidden"
+          onClick={() => setOpen(false)}
+        />
+      )}
+
+      {/* Main */}
+      <div className="relative lg:pl-64">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-xl sm:px-6">
+          <button
+            className="lg:hidden"
+            onClick={() => setOpen(true)}
+            aria-label="Open navigation"
+          >
+            <Menu className="size-5" />
+          </button>
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate font-display text-lg font-semibold">{title}</h1>
+            {subtitle && (
+              <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5">
+            {actions}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate({ to: "/evidence" })}
+              aria-label="Global search"
+            >
+              <Search className="size-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setLight((v) => !v)}
+              aria-label="Toggle theme"
+            >
+              {light ? <Moon className="size-4" /> : <Sun className="size-4" />}
+            </Button>
+            <Button variant="ghost" size="icon" aria-label="Notifications">
+              <Bell className="size-4" />
+            </Button>
+          </div>
+        </header>
+        <main className="relative p-4 sm:p-6">{children}</main>
+      </div>
+
+      <AssistantDock />
+    </div>
+  );
+}
+
+function SideLink({
+  to,
+  label,
+  icon: Icon,
+  active,
+}: {
+  to: string;
+  label: string;
+  icon: typeof Home;
+  active: boolean;
+}) {
+  return (
+    <Link
+      to={to}
+      className={cn(
+        "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all",
+        active
+          ? "bg-primary/12 font-medium text-primary neon-border"
+          : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+      )}
+    >
+      <Icon className={cn("size-4 shrink-0 transition-transform group-hover:scale-110")} />
+      <span className="truncate">{label}</span>
+    </Link>
+  );
+}
