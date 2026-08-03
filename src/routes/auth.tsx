@@ -287,10 +287,10 @@ function Field({
   id: string;
   name: string;
   label: string;
-  type?: string;
+  type?: string | undefined;
   icon: typeof Mail;
-  error?: string;
-  autoComplete?: string;
+  error?: string | undefined;
+  autoComplete?: string | undefined;
 }) {
   return (
     <div className="space-y-1.5">
