@@ -12,9 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedAgentsRouteImport } from './routes/_authenticated/agents'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedEvidenceRouteImport } from './routes/_authenticated/evidence'
+import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedInvestigateRouteImport } from './routes/_authenticated/investigate'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedThreatIntelRouteImport } from './routes/_authenticated/threat-intel'
@@ -36,6 +38,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAgentsRoute = AuthenticatedAgentsRouteImport.update({
+  id: '/agents',
+  path: '/agents',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
@@ -49,6 +56,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
 const AuthenticatedEvidenceRoute = AuthenticatedEvidenceRouteImport.update({
   id: '/evidence',
   path: '/evidence',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
+  id: '/home',
+  path: '/home',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedInvestigateRoute =
@@ -88,9 +100,11 @@ const AuthenticatedReportCaseIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/agents': typeof AuthenticatedAgentsRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
+  '/home': typeof AuthenticatedHomeRoute
   '/investigate': typeof AuthenticatedInvestigateRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/threat-intel': typeof AuthenticatedThreatIntelRoute
@@ -101,9 +115,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/agents': typeof AuthenticatedAgentsRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
+  '/home': typeof AuthenticatedHomeRoute
   '/investigate': typeof AuthenticatedInvestigateRoute
   '/reports': typeof AuthenticatedReportsRoute
   '/threat-intel': typeof AuthenticatedThreatIntelRoute
@@ -116,9 +132,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/agents': typeof AuthenticatedAgentsRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/evidence': typeof AuthenticatedEvidenceRoute
+  '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/investigate': typeof AuthenticatedInvestigateRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
   '/_authenticated/threat-intel': typeof AuthenticatedThreatIntelRoute
@@ -131,9 +149,11 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/agents'
     | '/analytics'
     | '/dashboard'
     | '/evidence'
+    | '/home'
     | '/investigate'
     | '/reports'
     | '/threat-intel'
@@ -144,9 +164,11 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/agents'
     | '/analytics'
     | '/dashboard'
     | '/evidence'
+    | '/home'
     | '/investigate'
     | '/reports'
     | '/threat-intel'
@@ -158,9 +180,11 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/agents'
     | '/_authenticated/analytics'
     | '/_authenticated/dashboard'
     | '/_authenticated/evidence'
+    | '/_authenticated/home'
     | '/_authenticated/investigate'
     | '/_authenticated/reports'
     | '/_authenticated/threat-intel'
@@ -198,6 +222,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/agents': {
+      id: '/_authenticated/agents'
+      path: '/agents'
+      fullPath: '/agents'
+      preLoaderRoute: typeof AuthenticatedAgentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/analytics': {
       id: '/_authenticated/analytics'
       path: '/analytics'
@@ -217,6 +248,13 @@ declare module '@tanstack/react-router' {
       path: '/evidence'
       fullPath: '/evidence'
       preLoaderRoute: typeof AuthenticatedEvidenceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/home': {
+      id: '/_authenticated/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof AuthenticatedHomeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/investigate': {
@@ -265,9 +303,11 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAgentsRoute: typeof AuthenticatedAgentsRoute
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEvidenceRoute: typeof AuthenticatedEvidenceRoute
+  AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedInvestigateRoute: typeof AuthenticatedInvestigateRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
   AuthenticatedThreatIntelRoute: typeof AuthenticatedThreatIntelRoute
@@ -277,9 +317,11 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAgentsRoute: AuthenticatedAgentsRoute,
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEvidenceRoute: AuthenticatedEvidenceRoute,
+  AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedInvestigateRoute: AuthenticatedInvestigateRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
   AuthenticatedThreatIntelRoute: AuthenticatedThreatIntelRoute,
