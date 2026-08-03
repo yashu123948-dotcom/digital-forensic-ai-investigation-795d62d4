@@ -68,9 +68,9 @@ export const runInvestigation = createServerFn({ method: "POST" })
       recommendations: agent.recommendations,
       reasoning: agent.reasoning ?? "",
       confidence: agent.confidence,
-      risk: ["low", "medium", "high", "critical"].includes(agent.risk ?? "")
-        ? agent.risk
-        : null,
+      risk: (["low", "medium", "high", "critical"] as const).find(
+        (level) => level === agent.risk,
+      ) ?? null,
     }));
     if (rows.length) await supabaseAdmin.from("agent_outputs").insert(rows);
 
