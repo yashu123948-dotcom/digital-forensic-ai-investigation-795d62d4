@@ -12,10 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedEvidenceRouteImport } from './routes/_authenticated/evidence'
 import { Route as AuthenticatedInvestigateRouteImport } from './routes/_authenticated/investigate'
 import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
+import { Route as AuthenticatedThreatIntelRouteImport } from './routes/_authenticated/threat-intel'
 import { Route as AuthenticatedTimelineRouteImport } from './routes/_authenticated/timeline'
 import { Route as AuthenticatedCaseCaseIdRouteImport } from './routes/_authenticated/case.$caseId'
 import { Route as AuthenticatedReportCaseIdRouteImport } from './routes/_authenticated/report.$caseId'
@@ -33,6 +35,11 @@ const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
@@ -55,6 +62,12 @@ const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedThreatIntelRoute =
+  AuthenticatedThreatIntelRouteImport.update({
+    id: '/threat-intel',
+    path: '/threat-intel',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTimelineRoute = AuthenticatedTimelineRouteImport.update({
   id: '/timeline',
   path: '/timeline',
@@ -75,10 +88,12 @@ const AuthenticatedReportCaseIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/analytics': typeof AuthenticatedAnalyticsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
   '/investigate': typeof AuthenticatedInvestigateRoute
   '/reports': typeof AuthenticatedReportsRoute
+  '/threat-intel': typeof AuthenticatedThreatIntelRoute
   '/timeline': typeof AuthenticatedTimelineRoute
   '/case/$caseId': typeof AuthenticatedCaseCaseIdRoute
   '/report/$caseId': typeof AuthenticatedReportCaseIdRoute
@@ -86,10 +101,12 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/analytics': typeof AuthenticatedAnalyticsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/evidence': typeof AuthenticatedEvidenceRoute
   '/investigate': typeof AuthenticatedInvestigateRoute
   '/reports': typeof AuthenticatedReportsRoute
+  '/threat-intel': typeof AuthenticatedThreatIntelRoute
   '/timeline': typeof AuthenticatedTimelineRoute
   '/case/$caseId': typeof AuthenticatedCaseCaseIdRoute
   '/report/$caseId': typeof AuthenticatedReportCaseIdRoute
@@ -99,10 +116,12 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/evidence': typeof AuthenticatedEvidenceRoute
   '/_authenticated/investigate': typeof AuthenticatedInvestigateRoute
   '/_authenticated/reports': typeof AuthenticatedReportsRoute
+  '/_authenticated/threat-intel': typeof AuthenticatedThreatIntelRoute
   '/_authenticated/timeline': typeof AuthenticatedTimelineRoute
   '/_authenticated/case/$caseId': typeof AuthenticatedCaseCaseIdRoute
   '/_authenticated/report/$caseId': typeof AuthenticatedReportCaseIdRoute
@@ -112,10 +131,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/analytics'
     | '/dashboard'
     | '/evidence'
     | '/investigate'
     | '/reports'
+    | '/threat-intel'
     | '/timeline'
     | '/case/$caseId'
     | '/report/$caseId'
@@ -123,10 +144,12 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/analytics'
     | '/dashboard'
     | '/evidence'
     | '/investigate'
     | '/reports'
+    | '/threat-intel'
     | '/timeline'
     | '/case/$caseId'
     | '/report/$caseId'
@@ -135,10 +158,12 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/analytics'
     | '/_authenticated/dashboard'
     | '/_authenticated/evidence'
     | '/_authenticated/investigate'
     | '/_authenticated/reports'
+    | '/_authenticated/threat-intel'
     | '/_authenticated/timeline'
     | '/_authenticated/case/$caseId'
     | '/_authenticated/report/$caseId'
@@ -173,6 +198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/analytics': {
+      id: '/_authenticated/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -201,6 +233,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReportsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/threat-intel': {
+      id: '/_authenticated/threat-intel'
+      path: '/threat-intel'
+      fullPath: '/threat-intel'
+      preLoaderRoute: typeof AuthenticatedThreatIntelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/timeline': {
       id: '/_authenticated/timeline'
       path: '/timeline'
@@ -226,20 +265,24 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEvidenceRoute: typeof AuthenticatedEvidenceRoute
   AuthenticatedInvestigateRoute: typeof AuthenticatedInvestigateRoute
   AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
+  AuthenticatedThreatIntelRoute: typeof AuthenticatedThreatIntelRoute
   AuthenticatedTimelineRoute: typeof AuthenticatedTimelineRoute
   AuthenticatedCaseCaseIdRoute: typeof AuthenticatedCaseCaseIdRoute
   AuthenticatedReportCaseIdRoute: typeof AuthenticatedReportCaseIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEvidenceRoute: AuthenticatedEvidenceRoute,
   AuthenticatedInvestigateRoute: AuthenticatedInvestigateRoute,
   AuthenticatedReportsRoute: AuthenticatedReportsRoute,
+  AuthenticatedThreatIntelRoute: AuthenticatedThreatIntelRoute,
   AuthenticatedTimelineRoute: AuthenticatedTimelineRoute,
   AuthenticatedCaseCaseIdRoute: AuthenticatedCaseCaseIdRoute,
   AuthenticatedReportCaseIdRoute: AuthenticatedReportCaseIdRoute,
