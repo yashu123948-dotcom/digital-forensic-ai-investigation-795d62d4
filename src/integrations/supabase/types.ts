@@ -242,6 +242,10 @@ export type Database = {
       }
       reports: {
         Row: {
+          approval_note: string | null
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
           case_id: string
           content: Json
           created_at: string
@@ -251,6 +255,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          approval_note?: string | null
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           case_id: string
           content?: Json
           created_at?: string
@@ -260,6 +268,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          approval_note?: string | null
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           case_id?: string
           content?: Json
           created_at?: string
