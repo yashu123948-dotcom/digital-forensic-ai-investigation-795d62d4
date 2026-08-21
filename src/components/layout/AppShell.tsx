@@ -22,6 +22,8 @@ import {
   Moon,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { casesQuery } from "@/lib/queries";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -61,8 +63,25 @@ export function AppShell({
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
   const [light, setLight] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [bellOpen, setBellOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const { data: cases = [] } = useQuery(casesQuery());
 
-  useEffect(() => setOpen(false), [pathname]);
+  const results = cases
+    .filter((c) =>
+      `${c.title} ${c.case_type}`.toLowerCase().includes(query.trim().toLowerCase()),
+    )
+    .slice(0, 8);
+  const notifications = [...cases]
+    .sort((a, b) => (b.updated_at ?? b.created_at).localeCompare(a.updated_at ?? a.created_at))
+    .slice(0, 6);
+
+  useEffect(() => {
+    setOpen(false);
+    setSearchOpen(false);
+    setBellOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     document.documentElement.classList.toggle("light", light);
@@ -70,9 +89,13 @@ export function AppShell({
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setSearchOpen(false);
+        setBellOpen(false);
+      }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        navigate({ to: "/evidence" });
+        setSearchOpen(true);
       }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "i") {
         e.preventDefault();
@@ -196,7 +219,7 @@ export function AppShell({
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate({ to: "/evidence" })}
+              onClick={() => setSearchOpen(true)}
               aria-label="Global search"
             >
               <Search className="size-4" />
@@ -209,11 +232,95 @@ export function AppShell({
             >
               {light ? <Moon className="size-4" /> : <Sun className="size-4" />}
             </Button>
-            <Button variant="ghost" size="icon" aria-label="Notifications">
-              <Bell className="size-4" />
-            </Button>
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Notifications"
+                onClick={() => setBellOpen((v) => !v)}
+              >
+                <Bell className="size-4" />
+                {notifications.length > 0 && (
+                  <span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-primary" />
+                )}
+              </Button>
+              {bellOpen && (
+                <div className="absolute right-0 top-11 z-50 w-72 rounded-lg border border-border bg-popover p-2 shadow-xl">
+                  <p className="px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                    Recent activity
+                  </p>
+                  {notifications.length === 0 ? (
+                    <p className="px-2 py-3 text-xs text-muted-foreground">Nothing new yet.</p>
+                  ) : (
+                    notifications.map((c) => (
+                      <button
+                        key={c.id}
+                        onClick={() => {
+                          setBellOpen(false);
+                          navigate({ to: "/case/$caseId", params: { caseId: c.id } });
+                        }}
+                        className="flex w-full flex-col rounded-md px-2 py-2 text-left hover:bg-secondary/60"
+                      >
+                        <span className="truncate text-xs font-medium">{c.title}</span>
+                        <span className="font-mono text-[10px] uppercase text-muted-foreground">
+                          {c.status} · {new Date(c.updated_at ?? c.created_at).toLocaleString()}
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </header>
+
+        {searchOpen && (
+          <div
+            className="fixed inset-0 z-[60] flex items-start justify-center bg-background/70 p-4 pt-28 backdrop-blur-sm"
+            onClick={() => setSearchOpen(false)}
+          >
+            <div
+              className="w-full max-w-lg overflow-hidden rounded-xl border border-border bg-popover shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-2 border-b border-border px-4">
+                <Search className="size-4 text-muted-foreground" />
+                <input
+                  autoFocus
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search cases by title or type…"
+                  className="h-12 w-full bg-transparent text-sm outline-none"
+                />
+              </div>
+              <div className="max-h-72 overflow-y-auto p-2">
+                {results.length === 0 ? (
+                  <p className="px-2 py-4 text-xs text-muted-foreground">No matching cases.</p>
+                ) : (
+                  results.map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => {
+                        setSearchOpen(false);
+                        setQuery("");
+                        navigate({ to: "/case/$caseId", params: { caseId: c.id } });
+                      }}
+                      className="flex w-full flex-col rounded-md px-3 py-2 text-left hover:bg-secondary/60"
+                    >
+                      <span className="truncate text-sm">{c.title}</span>
+                      <span className="font-mono text-[10px] uppercase text-muted-foreground">
+                        {c.case_type} · {c.status}
+                      </span>
+                    </button>
+                  ))
+                )}
+              </div>
+              <div className="border-t border-border px-4 py-2 text-[10px] text-muted-foreground">
+                Tip: press Esc to close · artefact search lives in the Evidence Explorer.
+              </div>
+            </div>
+          </div>
+        )}
         <main className="relative p-4 sm:p-6">{children}</main>
       </div>
 

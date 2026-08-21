@@ -310,3 +310,26 @@
 @utility animate-marquee {
   animation: fai-marquee 32s linear infinite;
 }
+
+@media print {
+  aside,
+  header,
+  .print\:hidden {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+  body,
+  .bg-background {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .lg\:pl-64 {
+    padding-left: 0 !important;
+  }
+  article {
+    box-shadow: none !important;
+    max-width: none !important;
+  }
+}

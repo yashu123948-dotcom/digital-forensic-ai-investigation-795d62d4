@@ -130,20 +130,41 @@ function CaseDetail() {
           )}
 
           <div className="glass-panel overflow-hidden">
-            <div className="border-b border-border px-5 py-4">
-              <h2 className="font-display text-sm font-semibold">Agent findings</h2>
+            <div className="flex flex-wrap items-center gap-3 border-b border-border px-5 py-4">
+              <h2 className="font-display text-sm font-semibold">Agent review</h2>
+              <span className="font-mono text-[11px] text-muted-foreground">
+                {data?.outputs.length ?? 0} / {AGENTS.length} agents reported
+              </span>
+              {data?.report && (
+                <Button asChild size="sm" variant="ghost" className="ml-auto">
+                  <Link to="/report/$caseId" params={{ caseId }}>
+                    View report
+                  </Link>
+                </Button>
+              )}
             </div>
-            {data && data.outputs.length === 0 ? (
-              <p className="p-6 text-sm text-muted-foreground">
-                No agent output yet. Run the pipeline to generate findings.
-              </p>
-            ) : (
-              <div className="divide-y divide-border">
-                {data?.outputs.map((o) => (
-                  <AgentRow key={o.id} output={o} />
-                ))}
-              </div>
-            )}
+            <div className="divide-y divide-border">
+              {AGENTS.map((spec) => {
+                const output = data?.outputs.find((o) => o.agent_key === spec.key);
+                return output ? (
+                  <AgentRow key={spec.key} output={output} />
+                ) : (
+                  <div
+                    key={spec.key}
+                    className="flex items-center gap-3 px-5 py-4 text-left opacity-70"
+                  >
+                    <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-secondary text-muted-foreground">
+                      <spec.icon className="size-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium">{spec.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">{spec.role}</p>
+                    </div>
+                    <StatusChip value={rerunning ? "running" : "pending"} />
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           <div className="glass-panel overflow-hidden">
