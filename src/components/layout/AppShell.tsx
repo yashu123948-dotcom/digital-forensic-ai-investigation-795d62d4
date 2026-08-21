@@ -61,8 +61,25 @@ export function AppShell({
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
   const [light, setLight] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [bellOpen, setBellOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const { data: cases = [] } = useQuery(casesQuery());
 
-  useEffect(() => setOpen(false), [pathname]);
+  const results = cases
+    .filter((c) =>
+      `${c.title} ${c.case_type}`.toLowerCase().includes(query.trim().toLowerCase()),
+    )
+    .slice(0, 8);
+  const notifications = [...cases]
+    .sort((a, b) => (b.updated_at ?? b.created_at).localeCompare(a.updated_at ?? a.created_at))
+    .slice(0, 6);
+
+  useEffect(() => {
+    setOpen(false);
+    setSearchOpen(false);
+    setBellOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     document.documentElement.classList.toggle("light", light);
@@ -70,9 +87,13 @@ export function AppShell({
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setSearchOpen(false);
+        setBellOpen(false);
+      }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        navigate({ to: "/evidence" });
+        setSearchOpen(true);
       }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "i") {
         e.preventDefault();
