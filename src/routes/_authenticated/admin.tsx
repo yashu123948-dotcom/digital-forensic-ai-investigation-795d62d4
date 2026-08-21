@@ -109,6 +109,49 @@ function AdminPage() {
 
       <div className="glass-panel mt-4 overflow-hidden">
         <div className="flex items-center gap-2 border-b border-border px-5 py-4">
+          <FileCheck2 className="size-4 text-primary" />
+          <h2 className="font-display text-sm font-semibold">Report approvals</h2>
+        </div>
+        {reports.length === 0 ? (
+          <p className="p-6 text-sm text-muted-foreground">No reports have been generated yet.</p>
+        ) : (
+          <div className="divide-y divide-border">
+            {reports.map((r) => (
+              <div key={r.id} className="flex flex-wrap items-center gap-3 px-5 py-3.5">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{r.title}</p>
+                  <p className="font-mono text-[11px] text-muted-foreground">
+                    {new Date(r.created_at).toLocaleString()}
+                  </p>
+                </div>
+                <StatusChip value={r.approval_status ?? "pending"} />
+                <Button asChild size="sm" variant="ghost">
+                  <Link to="/report/$caseId" params={{ caseId: r.case_id }}>
+                    Open
+                  </Link>
+                </Button>
+                {r.approval_status !== "approved" && (
+                  <Button size="sm" onClick={() => decideReport(r.id, "approved", r.title)}>
+                    Approve
+                  </Button>
+                )}
+                {r.approval_status !== "rejected" && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => decideReport(r.id, "rejected", r.title)}
+                  >
+                    Reject
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="glass-panel mt-4 overflow-hidden">
+        <div className="flex items-center gap-2 border-b border-border px-5 py-4">
           <ShieldCheck className="size-4 text-primary" />
           <h2 className="font-display text-sm font-semibold">Audit log</h2>
         </div>
