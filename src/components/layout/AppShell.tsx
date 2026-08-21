@@ -22,6 +22,8 @@ import {
   Moon,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { casesQuery } from "@/lib/queries";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
