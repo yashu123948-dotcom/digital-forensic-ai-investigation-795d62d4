@@ -52,6 +52,33 @@ function AdminPage() {
     },
   });
 
+  const { data: reports = [] } = useQuery({
+    queryKey: ["admin-reports"],
+    enabled: isAdmin,
+    queryFn: async (): Promise<ReportRow[]> => {
+      const { data, error } = await supabase
+        .from("reports")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  async function decideReport(id: string, status: "approved" | "rejected", title: string) {
+    const { error } = await supabase
+      .from("reports")
+      .update({ approval_status: status, approved_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    await qc.invalidateQueries({ queryKey: ["admin-reports"] });
+    await qc.invalidateQueries({ queryKey: ["reports"] });
+    toast.success(`${title} ${status}`);
+  }
+
   async function setStatus(id: string, status: "approved" | "rejected" | "deactivated") {
     const { error } = await supabase.from("profiles").update({ status }).eq("id", id);
     if (error) {
