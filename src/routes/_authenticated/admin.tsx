@@ -22,7 +22,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
 });
 
 function AdminPage() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, roleLoaded } = useAuth();
   const qc = useQueryClient();
 
   const { data: users = [] } = useQuery({
