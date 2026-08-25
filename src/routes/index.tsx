@@ -110,7 +110,7 @@ export default function Landing() {
             <CyberScene />
           </ClientOnly>
         </div>
-        <div className="relative mx-auto max-w-6xl px-5 pb-24 pt-24 text-center">
+        <div className="relative z-10 mx-auto max-w-6xl px-5 pb-24 pt-24 text-center">
           <motion.p
             initial={false}
             animate={{ opacity: 1, y: 0 }}
