@@ -55,8 +55,93 @@ function Analytics() {
     fontSize: 12,
   };
 
+  const completed = cases.filter((c) => c.status === "completed");
+  const malware = cases.reduce((s, c) => s + (c.malware_detected ?? 0), 0);
+  const avgScore = completed.length
+    ? Math.round(completed.reduce((s, c) => s + (c.threat_score ?? 0), 0) / completed.length)
+    : 0;
+  const critical = cases.filter((c) => c.risk === "critical" || c.risk === "high").length;
+
+  const trend = [...completed]
+    .sort((a, b) => a.created_at.localeCompare(b.created_at))
+    .slice(-12)
+    .map((c) => ({
+      name: new Date(c.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+      score: c.threat_score ?? 0,
+    }));
+
+  const riskData = (["low", "medium", "high", "critical"] as const)
+    .map((r) => ({ name: r, value: cases.filter((c) => c.risk === r).length }))
+    .filter((d) => d.value > 0);
+
   return (
     <AppShell title="Analytics" subtitle="Operational metrics across cases and agents">
+      <div className="mb-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Kpi label="Total cases" value={cases.length} />
+        <Kpi label="High / critical" value={critical} />
+        <Kpi label="Malware detected" value={malware} />
+        <Kpi label="Avg threat score" value={avgScore} />
+      </div>
+
+      <div className="mb-4 grid gap-4 lg:grid-cols-3">
+        <div className="glass-panel p-5 lg:col-span-2">
+          <h2 className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Threat score trend
+          </h2>
+          <div className="mt-4 h-64">
+            {trend.length ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={trend}>
+                  <defs>
+                    <linearGradient id="ts" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.5} />
+                      <stop offset="100%" stopColor="var(--primary)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="name" stroke="var(--muted-foreground)" fontSize={11} />
+                  <YAxis domain={[0, 100]} stroke="var(--muted-foreground)" fontSize={11} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Area type="monotone" dataKey="score" stroke="var(--primary)" strokeWidth={2} fill="url(#ts)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <Empty />
+            )}
+          </div>
+        </div>
+
+        <div className="glass-panel p-5">
+          <h2 className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Risk distribution
+          </h2>
+          <div className="mt-4 h-64">
+            {riskData.length ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={riskData}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={55}
+                    outerRadius={85}
+                    paddingAngle={3}
+                    stroke="var(--background)"
+                  >
+                    {riskData.map((d) => (
+                      <Cell key={d.name} fill={RISK_COLORS[d.name]} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={tooltipStyle} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <Empty />
+            )}
+          </div>
+        </div>
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="glass-panel p-5">
           <h2 className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">
