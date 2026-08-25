@@ -89,6 +89,16 @@ function AdminPage() {
     toast.success(`Account ${status}`);
   }
 
+  if (!roleLoaded) {
+    return (
+      <AppShell title="Admin panel" subtitle="Checking privileges">
+        <div className="glass-panel p-10 text-center text-sm text-muted-foreground">
+          Verifying your role…
+        </div>
+      </AppShell>
+    );
+  }
+
   if (!isAdmin) {
     return (
       <AppShell title="Admin panel" subtitle="Restricted">
