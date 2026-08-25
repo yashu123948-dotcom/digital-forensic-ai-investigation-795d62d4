@@ -1,6 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard,
+
   Home,
   Cpu,
   FolderPlus,
@@ -30,7 +30,6 @@ import { Button } from "@/components/ui/button";
 import { AssistantDock } from "@/components/AssistantDock";
 
 const NAV = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/home", label: "Home", icon: Home },
   { to: "/agents", label: "AI Agents", icon: Cpu },
   { to: "/investigate", label: "New Investigation", icon: FolderPlus },
