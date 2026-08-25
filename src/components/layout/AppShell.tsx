@@ -1,6 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard,
+
   Home,
   Cpu,
   FolderPlus,
@@ -30,7 +30,6 @@ import { Button } from "@/components/ui/button";
 import { AssistantDock } from "@/components/AssistantDock";
 
 const NAV = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/home", label: "Home", icon: Home },
   { to: "/agents", label: "AI Agents", icon: Cpu },
   { to: "/investigate", label: "New Investigation", icon: FolderPlus },
@@ -58,7 +57,7 @@ export function AppShell({
   actions?: ReactNode;
   children: ReactNode;
 }) {
-  const { profile, isAdmin, signOut } = useAuth();
+  const { profile, isAdmin, roleLoaded, signOut } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
@@ -177,7 +176,7 @@ export function AppShell({
                 {profile?.full_name || profile?.email}
               </p>
               <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                {isAdmin ? "Administrator" : "Analyst"}
+                {!roleLoaded ? "Checking role…" : isAdmin ? "Administrator" : "Analyst"}
               </p>
             </div>
           </div>

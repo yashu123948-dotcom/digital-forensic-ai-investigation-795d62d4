@@ -104,22 +104,22 @@ export default function Landing() {
       </header>
 
       {/* Hero */}
-      <section className="relative">
-        <div className="absolute inset-0 -z-0 h-[560px]">
+      <section className="relative isolate">
+        <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[560px] overflow-hidden">
           <ClientOnly>
             <CyberScene />
           </ClientOnly>
         </div>
-        <div className="relative mx-auto max-w-6xl px-5 pb-24 pt-24 text-center">
+        <div className="relative z-10 mx-auto max-w-6xl px-5 pb-24 pt-24 text-center">
           <motion.p
-            initial={{ opacity: 0, y: 12 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             className="mx-auto w-fit rounded-full border border-primary/30 bg-primary/10 px-3.5 py-1 font-mono text-[11px] uppercase tracking-[0.22em] text-primary"
           >
             Multi-agent forensic intelligence
           </motion.p>
           <motion.h1
-            initial={{ opacity: 0, y: 18 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
             className="mx-auto mt-6 max-w-3xl font-display text-4xl font-bold leading-[1.08] sm:text-6xl"
@@ -127,7 +127,7 @@ export default function Landing() {
             Investigate incidents at <span className="neon-text">machine speed</span>
           </motion.h1>
           <motion.p
-            initial={{ opacity: 0, y: 18 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.12 }}
             className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground sm:text-lg"
@@ -137,7 +137,7 @@ export default function Landing() {
             report you can put in front of a court.
           </motion.p>
           <motion.div
-            initial={{ opacity: 0, y: 18 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.18 }}
             className="mt-9 flex flex-wrap justify-center gap-3"
@@ -180,7 +180,7 @@ export default function Landing() {
           {CAPABILITIES.map((c, i) => (
             <motion.div
               key={c.title}
-              initial={{ opacity: 0, y: 18 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
               transition={{ delay: i * 0.04 }}
@@ -207,7 +207,7 @@ export default function Landing() {
           {AGENTS.map((agent, i) => (
             <motion.div
               key={agent.key}
-              initial={{ opacity: 0, y: 18 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
               transition={{ delay: (i % 3) * 0.05 }}
@@ -253,7 +253,7 @@ export default function Landing() {
           ].map(([title, body], i) => (
             <motion.li
               key={title}
-              initial={{ opacity: 0, x: -14 }}
+              initial={false}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.05 }}

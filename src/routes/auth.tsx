@@ -46,7 +46,7 @@ function AuthPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (!loading && session) navigate({ to: "/dashboard", replace: true });
+    if (!loading && session) navigate({ to: "/home", replace: true });
   }, [loading, session, navigate]);
 
   async function handleSignIn(e: React.FormEvent<HTMLFormElement>) {
@@ -69,7 +69,7 @@ function AuthPage() {
       return;
     }
     toast.success("Access granted");
-    navigate({ to: "/dashboard", replace: true });
+    navigate({ to: "/home", replace: true });
   }
 
   async function handleSignUp(e: React.FormEvent<HTMLFormElement>) {
@@ -107,7 +107,7 @@ function AuthPage() {
       toast.success("Account created — check your email to confirm, then await approval.");
     } else {
       toast.success("Account created. Awaiting administrator approval.");
-      navigate({ to: "/dashboard", replace: true });
+      navigate({ to: "/home", replace: true });
     }
   }
 
@@ -121,7 +121,7 @@ function AuthPage() {
       return;
     }
     if (result.redirected) return;
-    navigate({ to: "/dashboard", replace: true });
+    navigate({ to: "/home", replace: true });
   }
 
   return (

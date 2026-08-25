@@ -16,14 +16,14 @@ export const Route = createFileRoute("/_authenticated/settings")({
 });
 
 function SettingsPage() {
-  const { profile, isAdmin } = useAuth();
+  const { profile, isAdmin, roleLoaded } = useAuth();
   return (
     <AppShell title="Settings" subtitle="Account and access details">
       <div className="glass-panel max-w-2xl divide-y divide-border">
         <Row label="Name" value={profile?.full_name ?? "—"} />
         <Row label="Email" value={profile?.email ?? "—"} />
         <Row label="Organisation" value={profile?.organization ?? "—"} />
-        <Row label="Role" value={isAdmin ? "Administrator" : "Analyst"} />
+        <Row label="Role" value={!roleLoaded ? "Checking role…" : isAdmin ? "Administrator" : "Analyst"} />
         <div className="flex items-center gap-4 px-5 py-4">
           <p className="w-40 shrink-0 text-xs uppercase tracking-wider text-muted-foreground">
             Account status

@@ -22,7 +22,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
 });
 
 function AdminPage() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, roleLoaded } = useAuth();
   const qc = useQueryClient();
 
   const { data: users = [] } = useQuery({
@@ -87,6 +87,16 @@ function AdminPage() {
     }
     await qc.invalidateQueries({ queryKey: ["admin-users"] });
     toast.success(`Account ${status}`);
+  }
+
+  if (!roleLoaded) {
+    return (
+      <AppShell title="Admin panel" subtitle="Checking privileges">
+        <div className="glass-panel p-10 text-center text-sm text-muted-foreground">
+          Verifying your role…
+        </div>
+      </AppShell>
+    );
   }
 
   if (!isAdmin) {
