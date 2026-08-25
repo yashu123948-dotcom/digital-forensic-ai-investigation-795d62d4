@@ -253,7 +253,7 @@ export default function Landing() {
           ].map(([title, body], i) => (
             <motion.li
               key={title}
-              initial={{ opacity: 0, x: -14 }}
+              initial={false}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.05 }}
