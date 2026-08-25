@@ -15,7 +15,19 @@ import {
   PolarGrid,
   PolarAngleAxis,
   Radar,
+  AreaChart,
+  Area,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
+
+const RISK_COLORS: Record<string, string> = {
+  low: "var(--success)",
+  medium: "var(--warning)",
+  high: "var(--danger)",
+  critical: "var(--critical)",
+};
 
 export const Route = createFileRoute("/_authenticated/analytics")({
   head: () => ({
