@@ -14,32 +14,97 @@ export const Route = createFileRoute("/_authenticated/agent-reports")({
       {
         name: "description",
         content:
-          "Every AI agent's findings, recommendations and confidence for all investigations in one consolidated view.",
+          "Timeline of what every AI agent did on each investigation: findings, recommendations and confidence.",
       },
       { property: "og:title", content: "AI Agent Reports — ForensicAI" },
       {
         property: "og:description",
-        content: "Consolidated AI agent findings across all forensic cases.",
+        content: "Chronological AI agent activity across all forensic cases.",
       },
     ],
   }),
   component: AgentReportsPage,
 });
 
-function asList(value: unknown): string[] {
+interface Finding {
+  title?: string;
+  detail?: string;
+  severity?: string;
+}
+
+interface Step {
+  time: string;
+  event: string;
+  severity: string | null;
+  kind: "summary" | "finding" | "recommendation" | "reasoning";
+}
+
+function toFindings(value: unknown): Finding[] {
+  if (!Array.isArray(value)) return [];
+  return value.map((v) =>
+    typeof v === "string" ? { detail: v } : (v as Finding),
+  );
+}
+
+function toStrings(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value.map((v) => (typeof v === "string" ? v : JSON.stringify(v)));
 }
+
+function stamp(base: string, offsetSeconds: number) {
+  const d = new Date(new Date(base).getTime() + offsetSeconds * 1000);
+  return Number.isNaN(d.getTime()) ? base : d.toISOString().replace(/\.\d+Z$/, "Z");
+}
+
+function buildSteps(output: AgentOutputRow): Step[] {
+  const steps: Step[] = [];
+  let i = 0;
+  const base = output.created_at;
+  if (output.summary) {
+    steps.push({
+      time: stamp(base, i++),
+      event: output.summary,
+      severity: output.risk,
+      kind: "summary",
+    });
+  }
+  for (const f of toFindings(output.findings)) {
+    const text = [f.title, f.detail].filter(Boolean).join(" — ");
+    if (!text) continue;
+    steps.push({
+      time: stamp(base, i++),
+      event: text,
+      severity: f.severity ?? output.risk,
+      kind: "finding",
+    });
+  }
+  for (const r of toStrings(output.recommendations)) {
+    steps.push({ time: stamp(base, i++), event: r, severity: null, kind: "recommendation" });
+  }
+  if (output.reasoning) {
+    steps.push({
+      time: stamp(base, i++),
+      event: output.reasoning,
+      severity: null,
+      kind: "reasoning",
+    });
+  }
+  return steps;
+}
+
+const KIND_LABEL: Record<Step["kind"], string> = {
+  summary: "examination",
+  finding: "finding",
+  recommendation: "recommendation",
+  reasoning: "reasoning",
+};
 
 function AgentReportsPage() {
   const { data: outputs = [], isLoading } = useQuery(outputsQuery());
   const { data: cases = [] } = useQuery(casesQuery());
   const [agentFilter, setAgentFilter] = useState<string>("all");
 
-  const caseMap = useMemo(
-    () => new Map(cases.map((c) => [c.id, c])),
-    [cases],
-  );
+  const caseMap = useMemo(() => new Map(cases.map((c) => [c.id, c])), [cases]);
 
   const agentKeys = useMemo(
     () => Array.from(new Set(outputs.map((o) => o.agent_key))),
@@ -65,7 +130,7 @@ function AgentReportsPage() {
   return (
     <AppShell
       title="AI agent reports"
-      subtitle="All agent examinations across every investigation, in one place"
+      subtitle="What every agent did, step by step, on each investigation"
     >
       <div className="glass-panel mb-4 flex flex-wrap items-center gap-2 p-3">
         <FilterChip
@@ -84,7 +149,9 @@ function AgentReportsPage() {
       </div>
 
       {isLoading ? (
-        <p className="glass-panel p-6 text-sm text-muted-foreground">Loading agent reports…</p>
+        <p className="glass-panel p-6 text-sm text-muted-foreground">
+          Loading agent reports…
+        </p>
       ) : grouped.length === 0 ? (
         <p className="glass-panel p-6 text-sm text-muted-foreground">
           No agent output yet. Start an investigation to generate agent reports.
@@ -118,8 +185,7 @@ function AgentReportsPage() {
 
                 <div className="divide-y divide-border">
                   {rows.map((o) => {
-                    const findings = asList(o.findings);
-                    const recs = asList(o.recommendations);
+                    const steps = buildSteps(o);
                     return (
                       <article key={o.id} className="p-5">
                         <div className="flex flex-wrap items-center gap-2">
@@ -135,40 +201,26 @@ function AgentReportsPage() {
                           </span>
                         </div>
 
-                        {o.summary && (
-                          <p className="mt-2 text-sm text-muted-foreground">{o.summary}</p>
-                        )}
-
-                        {findings.length > 0 && (
-                          <>
-                            <p className="mt-3 font-mono text-[10px] uppercase tracking-wider text-primary">
-                              Findings
-                            </p>
-                            <ul className="mt-1 space-y-1 text-xs text-muted-foreground">
-                              {findings.map((f, i) => (
-                                <li key={i} className="flex gap-2">
-                                  <span className="text-primary">•</span>
-                                  {f}
-                                </li>
-                              ))}
-                            </ul>
-                          </>
-                        )}
-
-                        {recs.length > 0 && (
-                          <>
-                            <p className="mt-3 font-mono text-[10px] uppercase tracking-wider text-primary">
-                              Recommendations
-                            </p>
-                            <ul className="mt-1 space-y-1 text-xs text-muted-foreground">
-                              {recs.map((r, i) => (
-                                <li key={i} className="flex gap-2">
-                                  <span className="text-primary">→</span>
-                                  {r}
-                                </li>
-                              ))}
-                            </ul>
-                          </>
+                        {steps.length === 0 ? (
+                          <p className="mt-3 text-xs text-muted-foreground">
+                            This agent recorded no activity for this case.
+                          </p>
+                        ) : (
+                          <ol className="relative mt-4 space-y-5 border-l border-border pl-6">
+                            {steps.map((s, i) => (
+                              <li key={i} className="relative">
+                                <span className="absolute -left-[1.9rem] top-1.5 size-2.5 rounded-full bg-primary ring-4 ring-primary/15" />
+                                <p className="font-mono text-xs text-primary">{s.time}</p>
+                                <p className="mt-1 text-sm">{s.event}</p>
+                                <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                                  <span className="font-mono">
+                                    {(c?.title ?? "Case") + " · " + KIND_LABEL[s.kind]}
+                                  </span>
+                                  {s.severity && <StatusChip value={s.severity} />}
+                                </div>
+                              </li>
+                            ))}
+                          </ol>
                         )}
                       </article>
                     );
