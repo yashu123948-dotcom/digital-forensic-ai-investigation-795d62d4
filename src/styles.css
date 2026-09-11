@@ -340,3 +340,90 @@
     max-width: none !important;
   }
 }
+
+/* ── Cyber SOC surface polish (presentation only) ─────────────────── */
+@layer base {
+  aside {
+    background-image: var(--gradient-sidebar);
+  }
+
+  /* Cards / panels: charcoal surface, hairline border, quiet depth */
+  [class*="rounded-xl"].border.bg-card,
+  [class*="rounded-lg"].border.bg-card {
+    background-image: var(--gradient-surface);
+    box-shadow: var(--glow-soft);
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      transform 0.2s ease;
+  }
+  [class*="rounded-xl"].border.bg-card:hover,
+  [class*="rounded-lg"].border.bg-card:hover {
+    border-color: color-mix(in oklab, var(--primary) 34%, transparent);
+    box-shadow:
+      var(--glow-soft),
+      0 0 0 1px color-mix(in oklab, var(--primary) 18%, transparent);
+  }
+
+  /* Tables: dark head, thin separators, row hover */
+  table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  thead th {
+    background: color-mix(in oklab, var(--surface-2) 70%, transparent);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+  tbody tr {
+    transition: background-color 0.15s ease;
+  }
+  tbody tr:hover {
+    background: color-mix(in oklab, var(--primary) 7%, transparent);
+  }
+  tbody td,
+  thead th {
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Inputs */
+  input,
+  textarea,
+  select {
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 20%, transparent);
+  }
+
+  /* Buttons: smoother state transitions */
+  button {
+    transition:
+      background-color 0.18s ease,
+      color 0.18s ease,
+      border-color 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+
+  /* Dialogs / popovers */
+  [role="dialog"] {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--primary) 16%, transparent),
+      0 28px 70px -30px oklch(0 0 0 / 85%);
+  }
+}
+
+@utility panel-heading {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
