@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import launchVideo from "@/assets/launch-console-background.mp4.asset.json";
 import launchVideoWebm from "@/assets/launch-console-background.webm.asset.json";
 import launchPoster from "@/assets/launch-console-poster.jpg.asset.json";
+import socHero from "@/assets/bg-soc-hero.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -105,6 +106,11 @@ export default function Landing() {
       {/* Hero */}
       <section className="launch-hero relative isolate overflow-hidden">
         <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden>
+          <img
+            src={socHero}
+            alt=""
+            className="launch-hero-image absolute inset-0 size-full object-cover"
+          />
           <video
             className="launch-hero-video absolute inset-0 size-full object-cover"
             autoPlay
