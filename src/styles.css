@@ -341,8 +341,16 @@
   min-height: min(760px, calc(100svh - 4rem));
 }
 
+.launch-hero-image {
+  object-position: center 42%;
+  filter: saturate(0.78) contrast(1.14) brightness(0.72);
+  transform: scale(1.015);
+}
+
 .launch-hero-video {
-  filter: saturate(0.82) contrast(1.1) brightness(0.78);
+  opacity: 0.42;
+  mix-blend-mode: screen;
+  filter: saturate(0.7) contrast(1.12) brightness(0.7);
 }
 
 .launch-hero-shade {
@@ -366,8 +374,13 @@
 }
 
 @media (max-width: 640px) {
+  .launch-hero-image {
+    object-position: 57% center;
+  }
+
   .launch-hero-video {
     object-position: 42% center;
+    opacity: 0.32;
   }
 }
 
