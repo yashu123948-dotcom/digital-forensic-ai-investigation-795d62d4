@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { lazy } from "react";
 import { motion } from "motion/react";
 import {
   ShieldCheck,
@@ -11,11 +10,10 @@ import {
   Workflow,
   Gauge,
 } from "lucide-react";
-import { ClientOnly } from "@/components/ClientOnly";
 import { AGENTS } from "@/lib/agents";
 import { Button } from "@/components/ui/button";
-
-const CyberScene = lazy(() => import("@/components/three/CyberScene"));
+import launchVideo from "@/assets/launch-console-background.mp4.asset.json";
+import launchPoster from "@/assets/launch-console-poster.jpg.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -104,16 +102,29 @@ export default function Landing() {
       </header>
 
       {/* Hero */}
-      <section className="relative isolate">
-        <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[560px] overflow-hidden">
-          <ClientOnly>
-            <CyberScene />
-          </ClientOnly>
+      <section className="launch-hero relative isolate overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden>
+          <video
+            className="launch-hero-video absolute inset-0 size-full object-cover"
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="metadata"
+            poster={launchPoster.url}
+            tabIndex={-1}
+          >
+            <source src={launchVideo.url} type="video/mp4" />
+          </video>
+          <div className="launch-hero-shade absolute inset-0" />
+          <div className="launch-hero-grid absolute inset-0 cyber-grid" />
+          <div className="launch-hero-scan absolute inset-x-0 top-0 h-24" />
         </div>
-        <div className="relative z-10 mx-auto max-w-6xl px-5 pb-24 pt-24 text-center">
+        <div className="relative z-10 mx-auto max-w-6xl px-5 pb-24 pt-24 text-center sm:pt-28">
           <motion.p
             initial={false}
-            animate={{ opacity: 1, y: 0 }}
+            animate={{ opacity: [0.82, 1, 0.82], y: [0, -2, 0] }}
+            transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut" }}
             className="mx-auto w-fit rounded-full border border-primary/30 bg-primary/10 px-3.5 py-1 font-mono text-[11px] uppercase tracking-[0.22em] text-primary"
           >
             Multi-agent forensic intelligence
@@ -142,7 +153,7 @@ export default function Landing() {
             transition={{ delay: 0.18 }}
             className="mt-9 flex flex-wrap justify-center gap-3"
           >
-            <Button asChild size="lg">
+            <Button asChild size="lg" className="launch-console-cta">
               <Link to="/auth">
                 Launch console <ArrowRight className="ml-1.5 size-4" />
               </Link>
