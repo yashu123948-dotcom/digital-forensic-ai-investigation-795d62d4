@@ -13,6 +13,7 @@ import {
 import { AGENTS } from "@/lib/agents";
 import { Button } from "@/components/ui/button";
 import launchVideo from "@/assets/launch-console-background.mp4.asset.json";
+import launchVideoWebm from "@/assets/launch-console-background.webm.asset.json";
 import launchPoster from "@/assets/launch-console-poster.jpg.asset.json";
 
 export const Route = createFileRoute("/")({
@@ -114,6 +115,7 @@ export default function Landing() {
             poster={launchPoster.url}
             tabIndex={-1}
           >
+            <source src={launchVideoWebm.url} type="video/webm" />
             <source src={launchVideo.url} type="video/mp4" />
           </video>
           <div className="launch-hero-shade absolute inset-0" />
