@@ -43,7 +43,7 @@ function AgentsPage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [go, open]);
 
-  const agent = AGENTS[active];
+  const agent = AGENTS[active] ?? AGENTS[0]!;
   const spread = isMobile ? 70 : 190;
   const rot = isMobile ? 6 : 14;
   const visible = isMobile ? 1 : 3;
@@ -68,10 +68,10 @@ function AgentsPage() {
         <div
           className="relative mx-auto h-[460px] sm:h-[480px]"
           style={{ perspective: "1400px" }}
-          onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
+          onTouchStart={(e) => (touchX.current = (e.touches[0]?.clientX ?? 0))}
           onTouchEnd={(e) => {
             if (touchX.current === null) return;
-            const dx = e.changedTouches[0].clientX - touchX.current;
+            const dx = (e.changedTouches[0]?.clientX ?? 0) - touchX.current;
             if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
             touchX.current = null;
           }}
