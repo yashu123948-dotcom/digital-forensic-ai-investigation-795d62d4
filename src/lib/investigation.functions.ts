@@ -7,6 +7,7 @@ const ChatInput = z.object({
   question: z.string().min(1).max(2000),
   caseId: z.string().uuid().nullable(),
 });
+const EvidenceIdInput = z.object({ evidenceId: z.string().uuid() });
 
 export const runInvestigation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -22,10 +23,15 @@ export const runInvestigation = createServerFn({ method: "POST" })
       .maybeSingle();
     if (caseError || !caseRow) throw new Error("Case not found or not accessible.");
 
-    const { data: evidence } = await supabase
+    const { data: evidenceRows, error: evidenceError } = await supabase
       .from("evidence_files")
-      .select("file_name, file_type, file_size, sha256, extracted_text")
+      .select("id, file_name, file_type, file_size, sha256, extracted_text, created_at")
       .eq("case_id", data.caseId);
+    if (evidenceError) throw new Error("Could not read this investigation's evidence.");
+    const evidence = (evidenceRows ?? []).filter((file) => Boolean(file.sha256));
+    if (evidence.length === 0) {
+      throw new Error("No fingerprinted evidence is available. Upload a file and wait for processing before starting the investigation.");
+    }
 
     const apiKey = process.env["LOVABLE_API_KEY"];
     if (!apiKey) throw new Error("AI is not configured for this project.");
@@ -120,6 +126,132 @@ export const runInvestigation = createServerFn({ method: "POST" })
     });
 
     return { ok: true, risk: result.risk, threatScore: result.threat_score };
+  });
+
+export const processEvidenceFile = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => EvidenceIdInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: evidence, error: evidenceError } = await context.supabase
+      .from("evidence_files")
+      .select("id, case_id, user_id, file_name, file_type, file_size, storage_path, created_at")
+      .eq("id", data.evidenceId)
+      .maybeSingle();
+    if (evidenceError || !evidence) throw new Error("Evidence is not available to this account.");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const logProcessing = async (detail: string, action = "evidence.processing.completed") => {
+      const { error } = await supabaseAdmin.from("audit_logs").insert({
+        user_id: context.userId,
+        action,
+        entity: "evidence_file",
+        entity_id: evidence.id,
+        detail,
+      });
+      if (error) throw new Error("Could not record the evidence custody event.");
+    };
+    const recordFailure = async (reason: string) => {
+      await supabaseAdmin
+        .from("evidence_files")
+        .update({ sha256: null, extracted_text: null })
+        .eq("id", evidence.id);
+      await logProcessing(
+        `Source: Manual upload | Acquired: ${evidence.created_at} | SHA-256: failed | Extraction: failed | Reason: ${reason}`,
+        "evidence.processing.failed",
+      );
+      return { status: "failed" as const, extraction: "failed" as const, sha256: null };
+    };
+
+    if (!evidence.storage_path || evidence.file_size > 20 * 1024 * 1024) {
+      return recordFailure("Missing stored file or file exceeds the 20 MB processing limit.");
+    }
+
+    const { data: storedFile, error: downloadError } = await context.supabase.storage
+      .from("evidence")
+      .download(evidence.storage_path);
+    if (downloadError || !storedFile) return recordFailure("Stored file could not be read.");
+    if (storedFile.size > 20 * 1024 * 1024) return recordFailure("Stored file exceeds the 20 MB processing limit.");
+
+    const { inspectEvidenceBytes } = await import("./investigation.server");
+    const bytes = await storedFile.arrayBuffer();
+    let fingerprint: string | null = null;
+    try {
+      const digest = await crypto.subtle.digest("SHA-256", bytes);
+      fingerprint = Array.from(new Uint8Array(digest))
+        .map((value) => value.toString(16).padStart(2, "0"))
+        .join("");
+    } catch {
+      return recordFailure("SHA-256 fingerprint could not be calculated.");
+    }
+
+    const inspection = inspectEvidenceBytes(bytes, evidence.file_name, evidence.file_type);
+    const { error: updateError } = await supabaseAdmin
+      .from("evidence_files")
+      .update({
+        sha256: fingerprint,
+        file_type: inspection.fileType,
+        extracted_text: inspection.extractedText,
+      })
+      .eq("id", evidence.id);
+    if (updateError) return recordFailure("Evidence processing results could not be saved.");
+
+    const dateSummary = inspection.timestamps.length
+      ? inspection.timestamps.join(", ")
+      : "none found in inspected text";
+    const details = [
+      "Source: Manual upload",
+      `Acquired: ${evidence.created_at}`,
+      "SHA-256: recorded",
+      `Extraction: ${inspection.extractionStatus}`,
+      `Parser: ${inspection.parser}`,
+      `Observed timestamps: ${dateSummary}`,
+    ].join(" | ");
+    await logProcessing(details);
+
+    return {
+      status: "processed" as const,
+      extraction: inspection.extractionStatus,
+      sha256: fingerprint,
+    };
+  });
+
+export const verifyEvidenceIntegrity = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => EvidenceIdInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: evidence, error } = await context.supabase
+      .from("evidence_files")
+      .select("id, storage_path, sha256")
+      .eq("id", data.evidenceId)
+      .maybeSingle();
+    if (error || !evidence?.storage_path) throw new Error("Evidence is not available to this account.");
+
+    const { data: storedFile, error: downloadError } = await context.supabase.storage
+      .from("evidence")
+      .download(evidence.storage_path);
+    if (downloadError || !storedFile) throw new Error("The stored evidence file could not be read.");
+
+    const digest = await crypto.subtle.digest("SHA-256", await storedFile.arrayBuffer());
+    const currentHash = Array.from(new Uint8Array(digest))
+      .map((value) => value.toString(16).padStart(2, "0"))
+      .join("");
+    const status = !evidence.sha256
+      ? "unverified"
+      : evidence.sha256.toLowerCase() === currentHash
+        ? "match"
+        : "mismatch";
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error: auditError } = await supabaseAdmin.from("audit_logs").insert({
+      user_id: context.userId,
+      action: "evidence.integrity.checked",
+      entity: "evidence_file",
+      entity_id: evidence.id,
+      detail: `SHA-256 recheck: ${status}`,
+    });
+    if (auditError) throw new Error("Could not record the integrity check.");
+
+    return { status, storedHash: evidence.sha256, currentHash };
   });
 
 export const askAssistant = createServerFn({ method: "POST" })
