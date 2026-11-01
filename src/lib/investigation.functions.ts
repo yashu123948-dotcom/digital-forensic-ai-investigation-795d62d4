@@ -18,7 +18,7 @@ export const runInvestigation = createServerFn({ method: "POST" })
 
     const { data: caseRow, error: caseError } = await supabase
       .from("cases")
-      .select("id, title, description, case_type, user_id")
+      .select("id, title, description, case_type, user_id, status, risk, threat_score")
       .eq("id", data.caseId)
       .maybeSingle();
     if (caseError || !caseRow) throw new Error("Case not found or not accessible.");
@@ -28,7 +28,15 @@ export const runInvestigation = createServerFn({ method: "POST" })
       .select("id, file_name, file_type, file_size, sha256, extracted_text, created_at")
       .eq("case_id", data.caseId);
     if (evidenceError) throw new Error("Could not read this investigation's evidence.");
-    const evidence = (evidenceRows ?? []).filter((file) => Boolean(file.sha256));
+    const evidence = (evidenceRows ?? [])
+      .filter((file) => Boolean(file.sha256))
+      .sort((a, b) =>
+        a.created_at === b.created_at
+          ? a.id.localeCompare(b.id)
+          : a.created_at < b.created_at
+            ? -1
+            : 1,
+      );
     if (evidence.length === 0) {
       throw new Error("No fingerprinted evidence is available. Upload a file and wait for processing before starting the investigation.");
     }
@@ -36,9 +44,54 @@ export const runInvestigation = createServerFn({ method: "POST" })
     const apiKey = process.env["LOVABLE_API_KEY"];
     if (!apiKey) throw new Error("AI is not configured for this project.");
 
-    const { runForensicPipeline, AGENT_ORDER } = await import("./investigation.server");
+    const { runForensicPipeline, AGENT_ORDER, PIPELINE_VERSION } = await import("./investigation.server");
     const { AGENT_LABELS } = await import("./agent-labels");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Deterministic re-runs: fingerprint the exact pipeline inputs. When the
+    // evidence and case brief are unchanged, reuse the stored analysis instead
+    // of calling the model again, so the threat score never drifts between runs.
+    const fingerprintSource = JSON.stringify({
+      pipeline_version: PIPELINE_VERSION,
+      case: {
+        title: caseRow.title,
+        type: caseRow.case_type,
+        description: caseRow.description,
+      },
+      evidence: evidence.map((file) => ({
+        name: file.file_name,
+        sha256: file.sha256,
+        size: file.file_size,
+      })),
+    });
+    const fingerprintDigest = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(fingerprintSource),
+    );
+    const pipelineFingerprint = Array.from(new Uint8Array(fingerprintDigest))
+      .map((value) => value.toString(16).padStart(2, "0"))
+      .join("");
+
+    if (caseRow.status === "completed") {
+      const { data: existingReport } = await supabase
+        .from("reports")
+        .select("content")
+        .eq("case_id", data.caseId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const existingFingerprint = (
+        existingReport?.content as { pipeline_fingerprint?: string } | null
+      )?.pipeline_fingerprint;
+      if (existingFingerprint === pipelineFingerprint) {
+        return {
+          ok: true,
+          risk: caseRow.risk ?? "low",
+          threatScore: caseRow.threat_score ?? 0,
+          cached: true,
+        };
+      }
+    }
 
     await supabase.from("cases").update({ status: "running" }).eq("id", data.caseId);
 
@@ -86,6 +139,7 @@ export const runInvestigation = createServerFn({ method: "POST" })
       title: `Forensic Report — ${caseRow.title}`,
       executive_summary: result.executive_summary,
       content: {
+        pipeline_fingerprint: pipelineFingerprint,
         technical_summary: result.technical_summary,
         timeline: result.timeline,
         attack_path: result.attack_path,
@@ -125,7 +179,7 @@ export const runInvestigation = createServerFn({ method: "POST" })
       detail: `Risk ${result.risk} · score ${result.threat_score} · ${duration}s`,
     });
 
-    return { ok: true, risk: result.risk, threatScore: result.threat_score };
+    return { ok: true, risk: result.risk, threatScore: result.threat_score, cached: false };
   });
 
 export const processEvidenceFile = createServerFn({ method: "POST" })

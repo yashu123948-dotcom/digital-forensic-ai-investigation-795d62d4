@@ -175,6 +175,10 @@ const AGENT_KEYS = [
   "report_generation",
 ];
 
+// Bump whenever SYSTEM_PROMPT, the model or the output shape changes, so cached
+// pipeline results are invalidated and cases are re-analysed.
+export const PIPELINE_VERSION = "2026-11-01.1";
+
 const SYSTEM_PROMPT = `You are ForensicAI, an autonomous digital forensic investigation platform composed of nine specialist agents.
 
 Absolute rules:
@@ -246,6 +250,8 @@ export async function runForensicPipeline(
     },
     body: JSON.stringify({
       model: "google/gemini-3.6-flash",
+      // Deterministic sampling: the same evidence must yield the same analysis.
+      temperature: 0,
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: SYSTEM_PROMPT },

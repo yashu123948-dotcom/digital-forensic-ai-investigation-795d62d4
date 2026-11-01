@@ -50,9 +50,13 @@ function CaseDetail() {
   async function rerun() {
     setRerunning(true);
     try {
-      await run({ data: { caseId } });
+      const result = await run({ data: { caseId } });
       await qc.invalidateQueries({ queryKey: ["case", caseId] });
-      toast.success("Pipeline re-run complete");
+      toast.success(
+        result?.cached
+          ? "Evidence unchanged — stored analysis reused with identical results"
+          : "Pipeline re-run complete",
+      );
     } catch (error) {
       toast.error((error as Error).message);
     } finally {
